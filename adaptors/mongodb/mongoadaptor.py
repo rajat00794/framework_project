@@ -2,18 +2,15 @@
 import asyncio
 import json
 from typing import List
-from common_utilities.file_handler import FileUpload
 from bson.objectid import ObjectId
-
 class DataBaseManager:
     """_summary_"""
 
     def __init__(
-        self, client: object, engine: object, config: object, validator:object) -> None:
+        self, client: object, engine: object, config: object) -> None:
         self.client = client(config.get_uri())
         self.client.get_io_loop = asyncio.get_running_loop
         self.engine = engine(motor_client=self.client, database="test")
-        self.validator=validator
        
     async def bulk_save(self, instance: List[object]):
         """_summary_
@@ -36,14 +33,9 @@ class DataBaseManager:
         Returns:
             _type_: _description_
         """
-        from infrastructure.shared_di.di import obj_graph
-        instanc=self.validator.get_validator(instance)
-        data=None
-        if instanc is not None:
-            instance = await instanc(obj_graph.provide(FileUpload)).validate_create(instance)
-        data = await self.engine.save(instance)
+        
 
-        return data
+        return await self.engine.save(instance)
 
     async def update_one(self, instance: object, value: dict, update: dict):
         """_summary_
